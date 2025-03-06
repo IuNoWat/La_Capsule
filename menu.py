@@ -88,51 +88,51 @@ class Menu() :
                 rect_buttons.append(to_add)
                 #rect_buttons.append(self.font.render(btn.name,1,self.font_color).convert_alpha())
         return rect_buttons
+
     def show(self,Screen) :
         to_blit=self.render_menu_border()
         for i,rect in enumerate(to_blit) :
             Screen.blit(rect,(self.pos[0],rect.get_height()*i))
         return Screen
 
-menu=Menu((20,20))
-menu.add_button(
-    Button("Bouton 1 - BONJOURANH",print,["un","1"])
-)
-menu.add_button(
-    Button("Bouton 2",print,["deux","2"])
-)
-menu.add_button(
-    Button("Bouton 3",print,["trois","3"])
-)       
+if __name__=="__main__" :
+    
+    menu=Menu((20,20))
+    encoder.GAUCHE=menu.gauche
+    encoder.DROITE=menu.droite
+    encoder.BOUTTON=menu.click
+    
+    menu.add_button(
+        Button("Bouton 1 - BONJOURANH",print,["un","1"])
+    )
+    menu.add_button(
+        Button("Bouton 2",print,["deux","2"])
+    )
+    menu.add_button(
+        Button("Bouton 3",print,["trois","3"])
+    )       
 
-encoder.GAUCHE=menu.gauche
-encoder.DROITE=menu.droite
-encoder.BOUTTON=menu.click
+    screen = pygame.display.set_mode((768, 1366))
+    clock = pygame.time.Clock()
+    running = True
 
-class 
+    while running:
+        # poll for events
+        # pygame.QUIT event means the user clicked X to close your window
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
 
+        # fill the screen with a color to wipe away anything from last frame
+        screen.fill("purple")
 
-screen = pygame.display.set_mode((768, 1366))
-clock = pygame.time.Clock()
-running = True
+        screen=menu.show(screen)
 
-while running:
-    # poll for events
-    # pygame.QUIT event means the user clicked X to close your window
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
+        # RENDER YOUR GAME HERE
 
-    # fill the screen with a color to wipe away anything from last frame
-    screen.fill("purple")
+        # flip() the display to put your work on screen
+        pygame.display.flip()
 
-    screen=menu.show(screen)
+        clock.tick(60)  # limits FPS to 60
 
-    # RENDER YOUR GAME HERE
-
-    # flip() the display to put your work on screen
-    pygame.display.flip()
-
-    clock.tick(60)  # limits FPS to 60
-
-pygame.quit()
+    pygame.quit()
