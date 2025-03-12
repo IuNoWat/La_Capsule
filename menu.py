@@ -11,6 +11,11 @@ from pilots import encoder
 pygame.init()
 pygame.font.init()
 
+COLOR_BG=pygame.Color(22,13,34,255)
+COLOR_HL=pygame.Color(255,255,255,255)
+NUM_FONT_PATH="assets/DS-DIGI.TTF"
+TXT_FONT_PATH="assets/Rubik-VariableFont_wght.ttf"
+
 class Button() :
     def __init__(self,name,the_thing,args) :
         self.name=name
@@ -20,13 +25,13 @@ class Button() :
         self.the_thing(self.args)
 
 class Menu() :
-    def __init__(self,pos,font_size=20,font_color="Black",border=2) :
+    def __init__(self,pos,font_size=27,color_bg=COLOR_BG,color_hl=COLOR_HL,font_path=TXT_FONT_PATH) :
         #vars
         self.pos=pos
-        self.font=pygame.font.SysFont("Arial",font_size)
-        self.font_color=pygame.Color(font_color)
-        self.highlight_color=pygame.Color("White")
-        self.border=border
+        self.font=pygame.font.Font(font_path,font_size)
+        self.font.bold=True
+        self.color_bg=color_bg
+        self.color_hl=color_hl
 
         #working
         self.buttons=[]
@@ -46,7 +51,6 @@ class Menu() :
         self.cursor=self.cursor%len(self.buttons)
 
     def click(self,meh) :
-        print(self.cursor)
         self.buttons[self.cursor].do_the_thing()
 
     def update_btn_size(self) :
@@ -57,42 +61,30 @@ class Menu() :
         self.button_size=self.font.size(longer)
 
     def render_menu(self) :
-        self.update_btn_size()
+        #self.update_btn_size() #To use if you want the menu to adapt to the longest button text
         rect_buttons=[]
-        rect_buttons.append(self.font.render("Menu",1,self.font_color).convert_alpha())        
+        #rect_buttons.append(self.font.render("Menu",1,self.color_hl).convert_alpha())        
         for i,btn in enumerate(self.buttons) :
             if i==self.cursor :
-                rect_buttons.append(self.font.render(btn.name,1,self.font_color,self.highlight_color).convert_alpha())
-            else :
-                rect_buttons.append(self.font.render(btn.name,1,self.font_color).convert_alpha())
-        return rect_buttons
-
-    def render_menu_border(self) :
-        self.update_btn_size()
-        rect_buttons=[]
-        rect_buttons.append(self.font.render("Menu",1,self.font_color).convert_alpha())        
-        for i,btn in enumerate(self.buttons) :
-            if i==self.cursor :
-                to_add=pygame.Surface((self.button_size[0]+self.border*2,self.button_size[1]+self.border*2))
-                to_add.fill(self.highlight_color)
-                txt_rect=self.font.render(btn.name,1,self.font_color).convert_alpha()
-                to_add.blit(txt_rect,(self.border,self.border))
+                to_add=pygame.Surface((320,self.button_size[1]))
+                to_add.fill(self.color_hl)
+                txt_rect=self.font.render(btn.name,1,self.color_bg).convert_alpha()
+                to_add.blit(txt_rect,(10,0))
                 rect_buttons.append(to_add)
                 #rect_buttons.append(self.font.render(btn.name,1,self.font_color,self.highlight_color).convert_alpha())
             else :
-                to_add=pygame.Surface((self.button_size[0]+self.border*2,self.button_size[1]+self.border*2),pygame.SRCALPHA)
-                to_add.fill(pygame.Color(0,0,0,0))
-                pygame.draw.rect(to_add,self.highlight_color,(0,0,self.button_size[0]+self.border*2,self.button_size[1]+self.border*2),width=self.border)
-                txt_rect=self.font.render(btn.name,1,self.font_color).convert_alpha()
-                to_add.blit(txt_rect,(self.border,self.border))
+                to_add=pygame.Surface((320,self.button_size[1]))
+                to_add.fill(self.color_bg)
+                txt_rect=self.font.render(btn.name,1,self.color_hl).convert_alpha()
+                to_add.blit(txt_rect,(10,0))
                 rect_buttons.append(to_add)
                 #rect_buttons.append(self.font.render(btn.name,1,self.font_color).convert_alpha())
         return rect_buttons
 
     def show(self,Screen) :
-        to_blit=self.render_menu_border()
+        to_blit=self.render_menu()
         for i,rect in enumerate(to_blit) :
-            Screen.blit(rect,(self.pos[0],rect.get_height()*i))
+            Screen.blit(rect,(self.pos[0],self.pos[1]+((rect.get_height()+4)*i)))
         return Screen
 
 if __name__=="__main__" :
@@ -124,7 +116,7 @@ if __name__=="__main__" :
                 running = False
 
         # fill the screen with a color to wipe away anything from last frame
-        screen.fill("purple")
+        screen.fill(COLOR_BG)
 
         screen=menu.show(screen)
 

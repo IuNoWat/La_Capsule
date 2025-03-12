@@ -1,71 +1,150 @@
 #!/usr/bin/python
 #coding: utf-8
 
-import time
+from threading import Thread
 
-import RPi.GPIO as GPIO
 import krpc
-
 import pygame
-from pygame.locals import *
-pygame.init()
-pygame.font.init()
 
-from pilots import encoder
-
-#CONSTANTS
 HOME_WIFI_IP="192.168.1.159"
 RPC_PORT=50008
-FPS=30
-SCREEN_SIZE=(1080, 1920)
-BACKGROUND_PATH="assets/bg16-9.png"
+FPS=10
 
-#COLORS
-WHITE=pygame.Color("White")
-BLACK=pygame.Color("Black")
 
-class Main() :
-    def __init__(self) :
-        #vars
-        self.fps=FPS
-        self.size=SCREEN_SIZE
 
-        #working
+class API(Thread) :
+    def __init__(self,fps) :
+        #-----Initialisation of the Screen Thread-----#
+        Thread.__init__(self)
+        #-----Handling of desynchronised update-----#
+        self.tic=1
+        self.fps=fps
+        self.refresh_values=[[],[],[],[],[],[],[],[],[],[],[],]
+        self.access_values={}
+        #-----Handling of pygame loop-----#
         self.on=False
         self.clock=pygame.time.Clock()
-        self.screen=pygame.display.set_mode(self.size,pygame.FULLSCREEN)
-        self.bg=pygame.image.load(BACKGROUND_PATH).convert_alpha()
-        self.bg=pygame.transform.scale(self.bg,SCREEN_SIZE)
-        self.fps_font=font=pygame.font.SysFont("Arial", 30)
 
-    def launch(self) :
+        #-----Adding Values-----#
+        #Refresh rate 1
+        self.add_value({"name":"altitude","method":self.get_altitude},1)
+        self.add_value({"name":"speed","method":self.get_speed},1)
+
+        #Refresh rate 5
+        self.add_value({"name":"g_force","method":self.get_g_force},5)
+        self.add_value({"name":"temp","method":self.get_temp},5)
+
+        #Refresh rate 10
+        self.add_value({"name":"apoapsis","method":self.get_apoapsis},10)
+        self.add_value({"name":"apoapsis_time","method":self.get_apoapsis_time},10)
+        self.add_value({"name":"periapsis","method":self.get_periapsis},10)
+        self.add_value({"name":"periapsis_time","method":self.get_periapsis_time},10)
+    
+        #-----Temp value-----#
+        #To access  the krpc API only when necessary
+        self.current_values={
+            "sas":False,
+            "rcs":True,
+            "gaz":0,
+        }
+
+    def connect(self,ip=HOME_WIFI_IP) :
+        self.con=krpc.connect(
+            "Client",
+            ip,
+            RPC_PORT
+        )
+        self.vessel=self.con.space_center.active_vessel
+        self.camera=self.con.space_center.camera
+        self.control=self.vessel.control
+        self.flight=self.vessel.flight()
+        self.orbit=self.vessel.orbit
+        self.resources=self.vessel.resources
+    
+    def get_fps(self) :
+        return str(round(self.clock.get_fps(),1))
+    
+    def add_value(self,value,rate) :
+        self.refresh_values[rate].append(value)
+        self.access_values[value["name"]]=None
+
+    def update_values(self) :
+        
+        for i,value in enumerate(self.refresh_values) :
+            if i!=0 :
+                if self.tic%i==0 :
+                    for value in self.refresh_values[i] :
+                        self.access_values[value["name"]]=value["method"]()
+
+        if self.tic==self.fps :
+            self.tic=1
+        else :
+            self.tic+=1
+
+    def run(self) :
+
         self.on=True
-        self.screen.blit(self.bg,(0,0))
         while self.on :
             #Start of loop
-            #self.screen.blit(self.bg,(0,0))
 
-            #Events
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
-
-            #Add header
-            self.update_header()
+            #Update values
+            self.update_values()
 
             #End of loop
-            pygame.display.flip()
             self.clock.tick(self.fps)
-        
-        pygame.quit()
+
+
+    #-----GET_VALUE METHOD-----#
+
+    def get_altitude(self) :
+        return self.flight.surface_altitude
     
-    def update_header(self) :
-        fps=str(round(self.clock.get_fps(),1))
-        txt=f"SCREEN_FPS : {fps}"
-        to_blit=self.fps_font.render(txt,1,WHITE,BLACK)
-        self.screen.blit(to_blit,(0,0))
+    def get_speed(self) :
+        return self.flight.speed
+    
+    def get_g_force(self) :
+        return self.flight.g_force
+    
+    def get_temp(self) :
+        return self.flight.static_air_temperature
+    
+    def get_apoapsis(self) :
+        return self.orbit.apoapsis
+    
+    def get_apoapsis_time(self) :
+        return self.orbit.time_to_apoapsis
+    
+    def get_periapsis(self) :
+        return self.orbit.periapsis
+    
+    def get_periapsis_time(self) :
+        return self.orbit.time_to_periapsis
+    
+    #-----SET_VALUE METHOD-----#
+    
+    def set_SAS(self,value) :
+        if self.current_values["sas"]!=value :
+            self.control.sas=value
+            self.current_values["sas"]=value
+    
+    def set_RCS(self,value) :
+        if self.current_values["rcs"]!=value :
+            self.control.rcs=value
+            self.current_values["rcs"]=value
+    
+    def set_gaz(self,value) :
+        if self.current_values["gaz"]!=value :
+            self.control.rcs=value
+            self.current_values["gaz"]=value
 
 
-tele=Main()
 
-tele.launch()
+
+
+
+
+if __name__=="__main__" :
+    api=API(fps=10)
+    api.connect()
+    api.start()
+

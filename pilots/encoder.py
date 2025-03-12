@@ -40,7 +40,7 @@ def callback_click(pin) :
             last_pin=0
 
 #Callback link
-GPIO.add_event_detect(SW, GPIO.FALLING,callback=callback_boutton,bouncetime=100)
+GPIO.add_event_detect(SW, GPIO.FALLING,callback=callback_boutton,bouncetime=300)
 GPIO.add_event_detect(DT, GPIO.RISING,callback=callback_click,bouncetime=100)
 GPIO.add_event_detect(CLK, GPIO.RISING,callback=callback_click,bouncetime=100)
 
