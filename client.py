@@ -10,7 +10,8 @@ HOME_WIFI_IP="192.168.1.159"
 RPC_PORT=50008
 FPS=10
 
-
+#The API class launch a thread that follow the status of the KSP game.
+#Since calls to KRPC take lots of time, we need to desynchronise it from the pygame loop if we want to acheive 30+ fps
 
 class API(Thread) :
     def __init__(self,fps) :
@@ -26,6 +27,8 @@ class API(Thread) :
         self.clock=pygame.time.Clock()
 
         #-----Adding Values-----#
+        #The methode add_value define a value that the thread is going to follow, with a name, the method that need to be called, and the refresh rate of the value
+
         #Refresh rate 1
         self.add_value({"name":"altitude","method":self.get_altitude},1)
         self.add_value({"name":"speed","method":self.get_speed},1)
@@ -41,7 +44,7 @@ class API(Thread) :
         self.add_value({"name":"periapsis_time","method":self.get_periapsis_time},10)
     
         #-----Temp value-----#
-        #To access  the krpc API only when necessary
+        #To access the krpc API only when necessary, we cache thoose specific values that don't change often
         self.current_values={
             "sas":False,
             "rcs":True,
@@ -64,12 +67,11 @@ class API(Thread) :
     def get_fps(self) :
         return str(round(self.clock.get_fps(),1))
     
-    def add_value(self,value,rate) :
+    def add_value(self,value,rate) : #The methode add_value define a value that the thread is going to follow, with a name, the method that need to be called, and the refresh rate of the value
         self.refresh_values[rate].append(value)
         self.access_values[value["name"]]=None
 
-    def update_values(self) :
-        
+    def update_values(self) : #Called each loop
         for i,value in enumerate(self.refresh_values) :
             if i!=0 :
                 if self.tic%i==0 :
@@ -120,7 +122,7 @@ class API(Thread) :
     def get_periapsis_time(self) :
         return self.orbit.time_to_periapsis
     
-    #-----SET_VALUE METHOD-----#
+    #-----SET_VALUE METHOD-----# WORK IN PROGRESS
     
     def set_SAS(self,value) :
         if self.current_values["sas"]!=value :
@@ -139,11 +141,7 @@ class API(Thread) :
 
 
 
-
-
-
-
-if __name__=="__main__" :
+if __name__=="__main__" : #If launched directly, will start an API class
     api=API(fps=10)
     api.connect()
     api.start()

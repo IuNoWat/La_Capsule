@@ -1,6 +1,9 @@
 #!/usr/bin/python
 #coding: utf-8
 
+# Menu is used to create a specific menu controlled by a rotary encoder
+# It allow to add selectable buttons in the menu, and to connect any method to it
+
 import time
 
 import pygame
@@ -15,6 +18,8 @@ COLOR_BG=pygame.Color(22,13,34,255)
 COLOR_HL=pygame.Color(255,255,255,255)
 NUM_FONT_PATH="assets/DS-DIGI.TTF"
 TXT_FONT_PATH="assets/Rubik-VariableFont_wght.ttf"
+
+# To add a button, you need to define its name, the method it need to call, and eventually the necessary arguments
 
 class Button() :
     def __init__(self,name,the_thing,args) :

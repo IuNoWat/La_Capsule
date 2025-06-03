@@ -2,6 +2,14 @@ import time
 
 import RPi.GPIO as GPIO
 
+#This pilot allow the use of a rotary encoder :
+# 1 - Setting the GPIO to connect to the rotary encoder
+# 2 - Declaration of the methods to call when the encoder is turned right, left, or clicked
+# 3 - IDK what is going on here
+# 4 - Adding the callback to the methods declared before
+
+# 1 - Setting the GPIO to connect to the rotary encoder
+
 #GPIO Pins (BCM MODE)
 CLK=21
 DT=20
@@ -12,6 +20,8 @@ GPIO.setup(CLK, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 GPIO.setup(DT, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 GPIO.setup(SW, GPIO.IN, pull_up_down=GPIO.PUD_UP)  # Pull-up for button
 
+# 2 - Declaration of the methods to call when the encoder is turned right, left, or clicked
+
 def coucou(txt) :
     print(f"coucou {txt}")
 
@@ -19,6 +29,8 @@ def coucou(txt) :
 GAUCHE=coucou
 DROITE=coucou
 BOUTTON=coucou
+
+# 3 - IDK what is going on here
 
 #Callback handling
 global last_pin
@@ -38,6 +50,8 @@ def callback_click(pin) :
         if pin==20 :
             DROITE("droite")
             last_pin=0
+
+# 4 - Adding the callback to the methods declared before
 
 #Callback link
 GPIO.add_event_detect(SW, GPIO.FALLING,callback=callback_boutton,bouncetime=300)
